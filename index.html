@@ -5,7 +5,7 @@
 :root{color-scheme:light;--ink:#183b34;--muted:#62756d;--green:#166b51;--line:#dce6df;--paper:#f4f6f0}*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.6 system-ui,-apple-system,sans-serif}main{max-width:1160px;margin:auto;padding:44px 24px}header{display:flex;justify-content:space-between;align-items:center;gap:20px}h1{font-size:34px;margin:4px 0}h2{font-size:19px;margin:0}.eyebrow{font-size:12px;letter-spacing:3px;color:var(--green)}.muted,small{color:var(--muted)}button,input,select{font:inherit;border:1px solid #bccfc2;border-radius:9px;padding:9px 13px;background:white;color:var(--ink)}button{cursor:pointer}button.primary{background:var(--green);color:white;border-color:var(--green)}button[aria-pressed=true]{background:var(--ink);color:white}button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #e4b550;outline-offset:2px}.panel{background:white;border:1px solid var(--line);border-radius:16px;padding:24px;margin-top:24px}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:24px}.card{background:white;border:1px solid var(--line);border-radius:14px;padding:20px}.value{font-size:30px;font-weight:650;margin-top:8px}.controls{display:flex;align-items:center;flex-wrap:wrap;gap:10px}.topline{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}.chart{width:100%;height:330px;display:block;margin-top:16px}.message{padding:12px 0;min-height:40px}.form{display:grid;grid-template-columns:2fr 1fr 1fr;gap:16px;margin-top:18px}label{display:flex;flex-direction:column;gap:5px;font-size:14px}input{width:100%}table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:12px;border-bottom:1px solid var(--line);white-space:nowrap}.scroll{overflow:auto}.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--muted)}.tag{display:inline-block;background:#e6f0e7;padding:3px 9px;border-radius:7px;font-size:12px}.warning{color:#985414}footer{margin-top:28px;font-size:13px;color:var(--muted)}summary{cursor:pointer;font-weight:600}@media(max-width:700px){main{padding:24px 14px}header{align-items:flex-start}h1{font-size:27px}.cards{grid-template-columns:repeat(2,1fr);gap:10px}.card{padding:14px}.value{font-size:25px}.form{grid-template-columns:1fr}.panel{padding:16px}.chart{height:270px}}
 </style></head><body><main>
 <header><div><span class="eyebrow">SOLAR FIELD NOTES</span><h1>日光紀錄</h1><div class="muted">觀察每天充回多少電，夜晚又用了多少。</div></div><span class="tag" id="source">尚未連接資料</span></header>
-<section class="panel"><details open id="settings"><summary>連接你的試算表資料</summary><div class="form"><label>Apps Script 網頁應用程式網址<input id="endpoint" type="url" placeholder="https://script.google.com/macros/s/…/exec"></label><label>唯讀金鑰<input id="token" type="password" autocomplete="off" placeholder="READ_TOKEN"></label><label>裝置名稱<input id="device" value="solar-01" maxlength="48"></label></div><div class="controls" style="margin-top:16px"><button class="primary" id="load">讀取資料</button><button id="demo">查看示範</button><small>唯讀金鑰只留在本頁記憶體；不要填入寫入金鑰。</small></div></details><div class="message" role="status" id="status">請連接資料，或先查看標示清楚的示範曲線。</div></section>
+<section class="panel"><details open id="settings"><summary>連接你的試算表資料</summary><div class="form"><label>Apps Script 網頁應用程式網址<input id="endpoint" type="url" placeholder="https://script.google.com/macros/s/…/exec"></label><label>唯讀金鑰<input id="token" type="password" autocomplete="off" placeholder="READ_TOKEN"></label><label>裝置名稱<input id="device" value="solar-01" maxlength="48"></label></div><div class="controls" style="margin-top:16px"><button class="primary" id="load">讀取資料</button><button id="demo">查看示範</button><button id="clearSettings">清除設定</button><small id="storageNote">成功讀取後，會在此瀏覽器記住設定並於下次開啟自動讀取。共用電腦使用後請清除；不要填入寫入金鑰。</small></div></details><div class="message" role="status" id="status">請連接資料，或先查看標示清楚的示範曲線。</div></section>
 <div class="cards"><div class="card"><small>最新電池電壓</small><div class="value" id="latest">—</div><small id="latestTime">尚無資料</small></div><div class="card"><small>所選期間最低</small><div class="value" id="minimum">—</div><small>依實際採樣點</small></div><div class="card"><small>所選期間最高</small><div class="value" id="maximum">—</div><small>依實際採樣點</small></div><div class="card"><small>首末電壓差</small><div class="value" id="delta">—</div><small>趨勢參考，非耗電量</small></div></div>
 <section class="panel"><div class="topline"><h2>電池電壓曲線</h2><div class="controls"><button id="day" aria-pressed="false">24 小時</button><button id="week" aria-pressed="true">7 天</button><label>連線模式<select id="mode"><option value="all">全部模式</option><option value="0">完全離線</option><option value="1">間隔連線</option><option value="2">維持連線</option></select></label></div></div><div class="legend"><span>● 校正後電壓（V）</span><span>灰色時段：台灣時間 18:00–22:00</span><span>超過 45 分鐘的缺口不連線</span></div><svg class="chart" id="chart" viewBox="0 0 1000 320" role="img" aria-label="電池電壓趨勢圖"></svg><div id="hover" class="muted" aria-live="polite">將游標移至曲線可查看讀值；每日數據亦列在下表。</div><p class="warning" id="notice"></p></section>
 <section class="panel"><div class="topline"><h2>每天的變化</h2><button id="export">匯出目前曲線 CSV</button></div><p class="muted">比較同一時段的電壓最有意義；每日最高、最低值也會受燈具負載與充電狀態影響。</p><div class="scroll"><table><thead><tr><th>日期（台灣）</th><th>最低 V</th><th>最高 V</th><th>首末差 V</th><th>筆數</th><th>模式</th></tr></thead><tbody id="daily"><tr><td colspan="6">尚無資料</td></tr></tbody></table></div></section>
@@ -14,11 +14,62 @@
 'use strict';
 const $=id=>document.getElementById(id), names=['完全離線','間隔連線','維持連線'];
 let records=[], visible=[], days=7, demoMode=false, unknown=0, truncated=false;
+let requestGeneration=0;
+const settingsKey='solar-monitor-settings-v1:'+location.pathname.replace(/index\.html$/,'');
+function validateSettings(value){
+  if(!value||typeof value.endpoint!=='string'||typeof value.token!=='string'||typeof value.device!=='string')throw Error('設定格式錯誤');
+  const url=new URL(value.endpoint.trim());
+  if(url.origin!=='https://script.google.com'||url.username||url.password||!/^\/macros\/s\/[^/]+\/exec$/.test(url.pathname))throw Error('請使用 script.google.com 的正式 /exec 網址');
+  const token=value.token.trim(),device=value.device.trim();
+  if(!/^[A-Za-z0-9_-]{32,}$/.test(token))throw Error('唯讀金鑰至少 32 字元，只能含英數字、_、-');
+  if(!/^[A-Za-z0-9_-]{1,48}$/.test(device))throw Error('裝置名稱只能含英數字、_、-');
+  return {endpoint:url.origin+url.pathname,token,device};
+}
+function rememberSettings(value){
+  try{localStorage.setItem(settingsKey,JSON.stringify(value));return true}
+  catch(e){$('storageNote').textContent='瀏覽器不允許儲存設定；本次可讀取，但下次需重新輸入。';return false}
+}
+function restoreSettings(){
+  try{
+    const raw=localStorage.getItem(settingsKey);if(!raw)return false;
+    const value=validateSettings(JSON.parse(raw));
+    $('endpoint').value=value.endpoint;$('token').value=value.token;$('device').value=value.device;
+    return true;
+  }catch(e){$('storageNote').textContent='無法還原設定，請重新輸入並讀取。';return false}
+}
+$('clearSettings').onclick=()=>{
+  ++requestGeneration;
+  let cleared=true;try{localStorage.removeItem(settingsKey)}catch(e){cleared=false}
+  $('endpoint').value='';$('token').value='';$('device').value='solar-01';$('load').disabled=false;
+  records=[];unknown=0;truncated=false;demoMode=false;$('settings').open=true;
+  $('source').textContent='尚未連接資料';
+  $('status').textContent=cleared?'已清除本瀏覽器設定；試算表資料不受影響。':'畫面已清空，但瀏覽器拒絕清除儲存，請由瀏覽器設定清除此網站資料。';
+  render();
+};
 const dateFmt=new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit'});
 const timeFmt=new Intl.DateTimeFormat('zh-TW',{timeZone:'Asia/Taipei',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false});
 const dateOf=t=>dateFmt.format(new Date(t*1000)), stamp=t=>timeFmt.format(new Date(t*1000));
 function jsonp(url){return new Promise((resolve,reject)=>{const cb='solarCb_'+Date.now()+'_'+Math.random().toString(36).slice(2),el=document.createElement('script');let timer;const clean=()=>{clearTimeout(timer);delete window[cb];el.remove()};window[cb]=d=>{clean();resolve(d)};el.onerror=()=>{clean();reject(Error('連線失敗，請確認部署權限與網址'))};url.searchParams.set('callback',cb);el.src=url.toString();el.referrerPolicy='no-referrer';timer=setTimeout(()=>{clean();reject(Error('讀取逾時，請重試'))},25000);document.head.appendChild(el)})}
-$('load').onclick=async()=>{try{const u=new URL($('endpoint').value.trim());if(u.origin!=='https://script.google.com'||!/^\/macros\/s\/[^/]+\/exec$/.test(u.pathname))throw Error('請使用 script.google.com 的正式 /exec 網址');if(!$('token').value)throw Error('請輸入唯讀金鑰');u.searchParams.set('token',$('token').value);u.searchParams.set('device',$('device').value.trim());u.searchParams.set('days','7');$('status').textContent='正在讀取…';$('load').disabled=true;const data=await jsonp(u);if(!data.ok)throw Error(data.error||'讀取失敗');records=data.records.filter(r=>Number.isFinite(r.epoch)&&Number.isFinite(r.voltage)&&r.epoch>0).sort((a,b)=>a.epoch-b.epoch);unknown=data.unknown_count||0;truncated=!!data.truncated;demoMode=false;$('source').textContent='試算表實測資料';$('status').textContent='已更新 '+new Date().toLocaleTimeString('zh-TW')+'；最近 7 天 '+records.length+' 筆。';render()}catch(e){$('status').textContent=e.message+'。畫面保留上次成功讀取的資料。'}finally{$('load').disabled=false}};
+$('load').onclick=async()=>{
+  const generation=++requestGeneration;
+  try{
+    const settings=validateSettings({endpoint:$('endpoint').value,token:$('token').value,device:$('device').value});
+    $('token').value=settings.token;
+    const u=new URL(settings.endpoint);u.searchParams.set('token',settings.token);u.searchParams.set('device',settings.device);u.searchParams.set('days','7');
+    $('status').textContent='正在讀取…';$('load').disabled=true;
+    const data=await jsonp(u);if(generation!==requestGeneration)return;
+    if(!data.ok)throw Error(data.error||'讀取失敗');
+    if(!Array.isArray(data.records))throw Error('資料格式錯誤');
+    records=data.records.filter(r=>Number.isFinite(r.epoch)&&Number.isFinite(r.voltage)&&r.epoch>0).sort((a,b)=>a.epoch-b.epoch);
+    unknown=data.unknown_count||0;truncated=!!data.truncated;demoMode=false;
+    const saved=rememberSettings(settings);
+    if(saved)$('settings').open=false;
+    $('source').textContent='試算表實測資料';
+    $('status').textContent='已更新 '+new Date().toLocaleTimeString('zh-TW')+'；最近 7 天 '+records.length+' 筆。'+(saved?' 設定已記住。':'');
+    render();
+  }catch(e){if(generation===requestGeneration){$('settings').open=true;$('status').textContent=e.message+'。畫面保留上次成功讀取的資料。'}}
+  finally{if(generation===requestGeneration)$('load').disabled=false}
+};
 $('demo').onclick=()=>{const now=Math.floor(Date.now()/1000);records=[];for(let i=0;i<=7*96;i++){const epoch=now-(7*96-i)*900,h=((epoch+8*3600)%86400)/3600;records.push({device:'demo',epoch,voltage:3.9+0.12*Math.sin((h-8)/24*Math.PI*2)-i*0.00008,mode:1,quality:'synced',boot:1,seq:i})}unknown=0;truncated=false;demoMode=true;$('source').textContent='示範資料 · 非實測';$('status').textContent='這是模擬曲線，用來預覽畫面，不代表你的太陽能系統表現。';render()};
 $('day').onclick=()=>{days=1;render()};$('week').onclick=()=>{days=7;render()};$('mode').onchange=render;
 function render(){
@@ -48,4 +99,5 @@ const groups=new Map();for(const r of visible){const key=dateOf(r.epoch);if(!gro
 $('export').onclick=()=>{if(!visible.length)return;const rows=[['time_taipei','voltage_V','mode','time_quality','device'],...visible.map(r=>[dateOf(r.epoch)+' '+new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Taipei',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(new Date(r.epoch*1000)),r.voltage,names[r.mode],r.quality,r.device])];const csv='\uFEFF'+rows.map(row=>row.map(v=>'"'+String(v).replaceAll('"','""')+'"').join(',')).join('\r\n');const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download=(demoMode?'demo-':'')+'solar-voltage.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
 if(window.addEventListener)window.addEventListener('resize',render);
 render();
+if(restoreSettings())$('load').onclick();
 </script></body></html>
