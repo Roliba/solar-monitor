@@ -7,7 +7,7 @@
 <header><div><span class="eyebrow">SOLAR FIELD NOTES</span><h1>日光紀錄</h1><div class="muted">觀察每天充回多少電，夜晚又用了多少。</div></div><span class="tag" id="source">尚未連接資料</span></header>
 <section class="panel"><details open id="settings"><summary>連接你的試算表資料</summary><div class="form"><label>Apps Script 網頁應用程式網址<input id="endpoint" type="url" placeholder="https://script.google.com/macros/s/…/exec"></label><label>唯讀金鑰<input id="token" type="password" autocomplete="off" placeholder="READ_TOKEN"></label><label>裝置名稱<input id="device" value="solar-01" maxlength="48"></label></div><div class="controls" style="margin-top:16px"><button class="primary" id="load">讀取資料</button><button id="demo">查看示範</button><button id="clearSettings">清除設定</button><small id="storageNote">成功讀取後，會在此瀏覽器記住設定並於下次開啟自動讀取。共用電腦使用後請清除；不要填入寫入金鑰。</small></div></details><div class="message" role="status" id="status">請連接資料，或先查看標示清楚的示範曲線。</div></section>
 <div class="cards"><div class="card"><small>最新電池電壓</small><div class="value" id="latest">—</div><small id="latestTime">尚無資料</small></div><div class="card"><small>所選期間最低</small><div class="value" id="minimum">—</div><small>依實際採樣點</small></div><div class="card"><small>所選期間最高</small><div class="value" id="maximum">—</div><small>依實際採樣點</small></div><div class="card"><small>首末電壓差</small><div class="value" id="delta">—</div><small>趨勢參考，非耗電量</small></div></div>
-<section class="panel"><div class="topline"><h2>電池電壓曲線</h2><div class="controls"><button id="day" aria-pressed="false">24 小時</button><button id="week" aria-pressed="true">7 天</button><label>連線模式<select id="mode"><option value="all">全部模式</option><option value="0">完全離線</option><option value="1">間隔連線</option><option value="2">維持連線</option></select></label></div></div><div class="legend"><span>● 校正後電壓（V）</span><span>灰色時段：台灣時間 18:00–22:00</span><span>超過 45 分鐘的缺口不連線</span></div><svg class="chart" id="chart" viewBox="0 0 1000 320" role="img" aria-label="電池電壓趨勢圖"></svg><div id="hover" class="muted" aria-live="polite">將游標移至曲線可查看讀值；每日數據亦列在下表。</div><p class="warning" id="notice"></p></section>
+<section class="panel"><div class="topline"><h2>電池電壓曲線</h2><div class="controls"><button id="day" aria-pressed="false">24 小時</button><button id="week" aria-pressed="true">7 天</button><button id="month" aria-pressed="false">31 天</button><label>連線模式<select id="mode"><option value="all">全部模式</option><option value="0">完全離線</option><option value="1">間隔連線</option><option value="2">維持連線</option></select></label></div></div><div class="legend"><span>● 校正後電壓（V）</span><span>灰色時段：台灣時間 18:00–22:00</span><span>超過 45 分鐘的缺口不連線</span></div><svg class="chart" id="chart" viewBox="0 0 1000 320" role="img" aria-label="電池電壓趨勢圖"></svg><div id="hover" class="muted" aria-live="polite">將游標移至曲線可查看讀值；每日數據亦列在下表。</div><p class="warning" id="notice"></p></section>
 <section class="panel"><div class="topline"><h2>每天的變化</h2><button id="export">匯出目前曲線 CSV</button></div><p class="muted">比較同一時段的電壓最有意義；每日最高、最低值也會受燈具負載與充電狀態影響。</p><div class="scroll"><table><thead><tr><th>日期（台灣）</th><th>最低 V</th><th>最高 V</th><th>首末差 V</th><th>筆數</th><th>模式</th></tr></thead><tbody id="daily"><tr><td colspan="6">尚無資料</td></tr></tbody></table></div></section>
 <footer>顯示的是電壓曲線，尚未量測電流，不能當作電量百分比或 Wh。Wi-Fi 關閉也不代表整塊開發板進入深度睡眠。資料不會自動更新，請按「讀取資料」重新整理。</footer>
 </main><script>
@@ -55,7 +55,7 @@ $('load').onclick=async()=>{
   try{
     const settings=validateSettings({endpoint:$('endpoint').value,token:$('token').value,device:$('device').value});
     $('token').value=settings.token;
-    const u=new URL(settings.endpoint);u.searchParams.set('token',settings.token);u.searchParams.set('device',settings.device);u.searchParams.set('days','7');
+    const u=new URL(settings.endpoint);u.searchParams.set('token',settings.token);u.searchParams.set('device',settings.device);u.searchParams.set('days','31');
     $('status').textContent='正在讀取…';$('load').disabled=true;
     const data=await jsonp(u);if(generation!==requestGeneration)return;
     if(!data.ok)throw Error(data.error||'讀取失敗');
@@ -65,21 +65,21 @@ $('load').onclick=async()=>{
     const saved=rememberSettings(settings);
     if(saved)$('settings').open=false;
     $('source').textContent='試算表實測資料';
-    $('status').textContent='已更新 '+new Date().toLocaleTimeString('zh-TW')+'；最近 7 天 '+records.length+' 筆。'+(saved?' 設定已記住。':'');
+    $('status').textContent='已更新 '+new Date().toLocaleTimeString('zh-TW')+'；最近 31 天 '+records.length+' 筆。'+(saved?' 設定已記住。':'');
     render();
   }catch(e){if(generation===requestGeneration){$('settings').open=true;$('status').textContent=e.message+'。畫面保留上次成功讀取的資料。'}}
   finally{if(generation===requestGeneration)$('load').disabled=false}
 };
 $('demo').onclick=()=>{const now=Math.floor(Date.now()/1000);records=[];for(let i=0;i<=7*96;i++){const epoch=now-(7*96-i)*900,h=((epoch+8*3600)%86400)/3600;records.push({device:'demo',epoch,voltage:3.9+0.12*Math.sin((h-8)/24*Math.PI*2)-i*0.00008,mode:1,quality:'synced',boot:1,seq:i})}unknown=0;truncated=false;demoMode=true;$('source').textContent='示範資料 · 非實測';$('status').textContent='這是模擬曲線，用來預覽畫面，不代表你的太陽能系統表現。';render()};
-$('day').onclick=()=>{days=1;render()};$('week').onclick=()=>{days=7;render()};$('mode').onchange=render;
+$('day').onclick=()=>{days=1;render()};$('week').onclick=()=>{days=7;render()};$('month').onclick=()=>{days=31;render()};$('mode').onchange=render;
 function render(){
-$('day').setAttribute('aria-pressed',days===1);$('week').setAttribute('aria-pressed',days===7);
+$('day').setAttribute('aria-pressed',days===1);$('week').setAttribute('aria-pressed',days===7);$('month').setAttribute('aria-pressed',days===31);
 const end=Math.floor(Date.now()/1000),start=end-days*86400,mode=$('mode').value;
 visible=records.filter(r=>r.epoch>=start&&r.epoch<=end&&(mode==='all'||String(r.mode)===mode));
 const vals=visible.map(r=>r.voltage),latest=visible.at(-1),delta=latest?latest.voltage-visible[0].voltage:null;
 $('latest').textContent=latest?latest.voltage.toFixed(3)+' V':'—';$('latestTime').textContent=latest?stamp(latest.epoch)+(end-latest.epoch>7200?' · 資料較舊':''):'所選期間尚無資料';
 $('minimum').textContent=vals.length?Math.min(...vals).toFixed(3)+' V':'—';$('maximum').textContent=vals.length?Math.max(...vals).toFixed(3)+' V':'—';$('delta').textContent=delta===null?'—':(delta>=0?'+':'')+delta.toFixed(3)+' V';
-let notes=[];if(unknown)notes.push(unknown+' 筆未校時資料保留在試算表，未畫入時間曲線');if(visible.some(r=>r.quality==='inferred'))notes.push('含同次開機校時後回推的時間');if(truncated)notes.push('資料已達顯示筆數上限');if(demoMode)notes.push('目前為示範資料');$('notice').textContent=notes.join('；');
+let notes=[];if(unknown)notes.push(unknown+' 筆未校時資料保留在試算表，未畫入時間曲線');if(visible.some(r=>r.quality==='inferred'))notes.push('含同次開機校時後回推的時間');if(truncated)notes.push('資料已達顯示筆數上限');if(demoMode)notes.push('目前為示範資料');if(!visible.length&&records.length)notes.push('已載入的資料不在目前時段／模式，請切換 31 天與全部模式。曲線使用採樣時間，並非補傳時間');$('notice').textContent=notes.join('；');
 const svg=$('chart'), W=Math.max(360,svg.clientWidth||1000),H=320,L=62,R=18,T=18,B=40,pw=W-L-R,ph=H-T-B;
 svg.setAttribute('viewBox','0 0 '+W+' 320');
 const lo=vals.length?Math.floor((Math.min(...vals)-.04)*10)/10:3,hi=vals.length?Math.ceil((Math.max(...vals)+.04)*10)/10:4.3;
